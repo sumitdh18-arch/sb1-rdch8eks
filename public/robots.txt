@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+
+Sitemap: https://shiny-beignet-b02da4.netlify.app/sitemap.xml
