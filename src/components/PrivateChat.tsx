@@ -5,48 +5,47 @@ import { useAppContext } from "../context/AppContext";
 import { useMessages } from "../hooks/useMessages";
 import { usePrivateChats } from "../hooks/usePrivateChats";
 import { useFileUpload } from "../hooks/useFileUpload";
-import { usePresence } from "../hooks/usePresence";
-import { useReports } from "../hooks/useReports";
-import { formatTime, playNotificationSound } from "../utils/helpers";
+import { formatTime } from "../utils/helpers";
 import type { Message, PrivateChat, User } from "../types";
-import { supabase } from "../lib/supabase";
 
 export default function PrivateChat() {
   const {
-    state: { user, privateChatId, chatPartners },
+    state: { user, privateChatId },
     dispatch,
   } = useAppContext();
 
+  // Get all messages for this private chat
   const { messages, sendMessage } = useMessages(undefined, privateChatId);
-  const { privateChats } = usePrivateChats(user?.id);
-  const { handleFileUpload } = useFileUpload();
-  const { presence } = usePresence(user);
-  const { reports } = useReports(user?.id);
 
+  // All private chats for current user
+  const { privateChats } = usePrivateChats(user?.id);
+
+  // For uploading files
+  const { handleFileUpload } = useFileUpload();
+
+  // Local UI state
   const [input, setInput] = useState("");
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const privateChat = privateChats.find((c) => c.id === privateChatId);
-  const otherUserId = privateChat?.participants.find((id) => id !== user?.id);
-  const otherUser: User | undefined =
-    presence[otherUserId ?? ""] ||
-    chatPartners[otherUserId ?? ""] ||
-    undefined;
+  // Current chat object
+  const privateChat: PrivateChat | undefined = privateChats.find(
+    (c) => c.id === privateChatId
+  );
 
+  // Figure out the other participant
+  const otherUserId = privateChat?.participants.find((id) => id !== user?.id);
+
+  // Check if blocked
   const isBlocked = privateChat?.blockedUsers?.includes(user?.id || "");
 
-  useEffect(() => {
-    if (messages.length > 0) {
-      playNotificationSound();
-    }
-  }, [messages.length]);
-
+  // Auto-scroll on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Send a text message
   const handleSend = async () => {
     if (!input.trim() || !privateChatId) return;
     await sendMessage({
@@ -57,14 +56,10 @@ export default function PrivateChat() {
     setInput("");
   };
 
+  // Send an image/file
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !privateChatId) return;
-
-    if (file.size > 10 * 1024 * 1024) {
-      alert("File size must be less than 10MB");
-      return;
-    }
 
     setUploading(true);
     const url = await handleFileUpload(file);
@@ -88,16 +83,9 @@ export default function PrivateChat() {
         >
           <ArrowLeft />
         </button>
-        {otherUser ? (
-          <div>
-            <p className="font-semibold">{otherUser.name}</p>
-            <p className="text-xs text-gray-500">
-              {presence[otherUser.id] ? "Online" : "Offline"}
-            </p>
-          </div>
-        ) : (
-          <p className="font-semibold">Unknown user</p>
-        )}
+        <p className="font-semibold">
+          Chat with {otherUserId ?? "Unknown user"}
+        </p>
       </div>
 
       {/* Messages */}
@@ -111,9 +99,7 @@ export default function PrivateChat() {
             >
               <div
                 className={`max-w-xs p-2 rounded-lg ${
-                  isMine
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200 text-gray-800"
+                  isMine ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"
                 }`}
               >
                 {m.content && <p>{m.content}</p>}
