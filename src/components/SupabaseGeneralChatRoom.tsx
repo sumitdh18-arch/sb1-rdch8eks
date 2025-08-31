@@ -131,7 +131,7 @@ export default function SupabaseGeneralChatRoom() {
         
         // Navigate to private chat
         dispatch({ type: 'SET_CHAT_PARTNER_NAME', payload: userName })
-        dispatch({ type: 'SELECT_PRIVATE_CHAT', payload: chat.id })
+        dispatch({ type: 'SELECT_PRIVATE_CHAT', payload: typeof chat === 'string' ? chat : chat.id })
         dispatch({ type: 'SET_PREVIOUS_PAGE', payload: 'chat-room' })
         dispatch({ type: 'SET_PAGE', payload: 'private-chat' })
       } else {

@@ -83,7 +83,7 @@ export default function OnlineUsers() {
     }
     
     try {
-      // ✅ Use RPC instead of usePrivateChats
+      // Use RPC function to find or create private chat
       const { data: chatId, error } = await supabase.rpc(
         'find_or_create_private_chat',
         { p1: user.id, p2: userId }

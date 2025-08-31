@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { supabase } from '../lib/supabase'
 import { PrivateChat } from '../types'
 
 export function usePrivateChats(userId?: string | null) {
@@ -30,18 +31,16 @@ export function usePrivateChats(userId?: string | null) {
 
       // ✅ We now query the base table with messages joined
       const { data, error } = await supabase
-        .from('private_chats_base')
+        .from('private_chats')
         .select(`
           id,
           participant_1,
           participant_2,
-          participant_1_username,
-          participant_1_avatar,
-          participant_2_username,
-          participant_2_avatar,
           blocked_by,
           created_at,
           last_activity,
+          participant_1_profile:profiles!private_chats_participant_1_fkey(username, avatar_url),
+          participant_2_profile:profiles!private_chats_participant_2_fkey(username, avatar_url),
           messages (
             id,
             content,
@@ -82,10 +81,10 @@ export function usePrivateChats(userId?: string | null) {
           lastActivity: new Date(chat.last_activity),
           unreadCount,
           blockedBy: chat.blocked_by,
-          participant_1_username: chat.participant_1_username,
-          participant_1_avatar: chat.participant_1_avatar,
-          participant_2_username: chat.participant_2_username,
-          participant_2_avatar: chat.participant_2_avatar,
+          participant_1_username: chat.participant_1_profile?.username,
+          participant_1_avatar: chat.participant_1_profile?.avatar_url,
+          participant_2_username: chat.participant_2_profile?.username,
+          participant_2_avatar: chat.participant_2_profile?.avatar_url,
         }
       })
 
@@ -103,7 +102,7 @@ export function usePrivateChats(userId?: string | null) {
       .channel('private_chats_and_messages')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'private_chats_base' },
+        { event: '*', schema: 'public', table: 'private_chats' },
         () => fetchPrivateChats()
       )
       .on(
@@ -120,7 +119,7 @@ export function usePrivateChats(userId?: string | null) {
     try {
       // ✅ Check if chat exists
       const { data: existing, error: checkError } = await supabase
-        .from('private_chats_base')
+        .from('private_chats')
         .select('*')
         .or(
           `and(participant_1.eq.${validUserId},participant_2.eq.${otherUserId}),
@@ -139,7 +138,7 @@ export function usePrivateChats(userId?: string | null) {
 
       // ✅ Create new chat
       const { data: newChat, error: createError } = await supabase
-        .from('private_chats_base')
+        .from('private_chats')
         .insert({
           participant_1: validUserId,
           participant_2: otherUserId,
@@ -163,7 +162,7 @@ export function usePrivateChats(userId?: string | null) {
 
     try {
       const { error } = await supabase
-        .from('private_chats_base')
+        .from('private_chats')
         .update({ blocked_by: validUserId })
         .eq('id', chatId)
 
@@ -178,7 +177,7 @@ export function usePrivateChats(userId?: string | null) {
   const unblockUser = async (chatId: string) => {
     try {
       const { error } = await supabase
-        .from('private_chats_base')
+        .from('private_chats')
         .update({ blocked_by: null })
         .eq('id', chatId)
 

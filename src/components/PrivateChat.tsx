@@ -43,42 +43,35 @@ export default function PrivateChat() {
   const otherUser = React.useMemo(() => {
     if (!otherUserId) return null;
     
-    // Get real user info from database
-    const [userInfo, setUserInfo] = React.useState(null);
-    
-    React.useEffect(() => {
-      const fetchUserInfo = async () => {
-        try {
-          const { data, error } = await supabase
-            .rpc('get_user_info', { user_id: otherUserId });
-          
-          if (data && data.length > 0) {
-            const user = data[0];
-            const isOnline = onlineUsers.some(p => p.id === otherUserId) || 
-                           (user.is_online && new Date(user.last_seen) > new Date(Date.now() - 5 * 60 * 1000));
-            
-            setUserInfo({
-              id: user.id,
-              username: user.username,
-              avatar: user.avatar_url,
-              isOnline
-            });
-          }
-        } catch (error) {
-          console.error('Error fetching user info:', error);
-        }
-      };
+    // Try to get user info from current chat data first
+    if (currentChat) {
+      const isParticipant1 = currentChat.participant_1_username && currentChat.participants[0] === otherUserId;
+      const isParticipant2 = currentChat.participant_2_username && currentChat.participants[1] === otherUserId;
       
-      fetchUserInfo();
-    }, [otherUserId, onlineUsers]);
+      if (isParticipant1) {
+        return {
+          id: otherUserId,
+          username: currentChat.participant_1_username,
+          avatar: currentChat.participant_1_avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${otherUserId}&backgroundColor=b6e3f4,c0aede,d1d4f9`,
+          isOnline: onlineUsers.some(p => p.id === otherUserId)
+        };
+      } else if (isParticipant2) {
+        return {
+          id: otherUserId,
+          username: currentChat.participant_2_username,
+          avatar: currentChat.participant_2_avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${otherUserId}&backgroundColor=b6e3f4,c0aede,d1d4f9`,
+          isOnline: onlineUsers.some(p => p.id === otherUserId)
+        };
+      }
+    }
     
-    return userInfo || {
+    // Fallback to basic info
+    return {
       id: otherUserId,
       username: state.selectedChatPartnerName || `User${otherUserId.slice(-3)}`,
       avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${otherUserId}&backgroundColor=b6e3f4,c0aede,d1d4f9`,
-      isOnline: false
+      isOnline: onlineUsers.some(p => p.id === otherUserId)
     };
-  }, [otherUserId, state, onlineUsers]);
 
   const isBlocked = currentChat?.blockedBy === user?.id;
   const isBlockedByOther = currentChat?.blockedBy && currentChat.blockedBy !== user?.id;
