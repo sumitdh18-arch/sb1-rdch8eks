@@ -1,13 +1,13 @@
 /*
-  # Fix private_chats_base reference
+  # Fix private_chats reference
 
-  1. Remove any references to private_chats_base table/view
+  1. Remove any references to private_chats table/view
   2. Ensure private_chats table has all necessary columns
   3. Add any missing indexes for performance
 */
 
--- Remove the private_chats_base view if it exists
-DROP VIEW IF EXISTS private_chats_base;
+-- Remove the private_chats view if it exists
+DROP VIEW IF EXISTS private_chats;
 
 -- Ensure private_chats table has all necessary columns
 DO $$
