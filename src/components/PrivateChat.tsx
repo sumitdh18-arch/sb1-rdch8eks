@@ -7,10 +7,7 @@ import { usePrivateChats } from '../hooks/usePrivateChats';
 import { useFileUpload } from '../hooks/useFileUpload';
 import { useReports } from '../hooks/useReports';
 import { useApp } from '../context/AppContext';
-import { 
-  ArrowLeft, Send, Image, Phone, MoreVertical, Flag, 
-  Block, UserX, X, CheckCheck, Activity 
-} from 'lucide-react';
+import { ArrowLeft, Send, Image, Phone, MoreVertical, Flag, Blocks as Block, UserX, X, CheckCheck, Activity } from 'lucide-react';
 import { formatTime, playNotificationSound } from '../utils/helpers';
 
 export default function PrivateChat() {
