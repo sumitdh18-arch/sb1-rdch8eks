@@ -8,7 +8,7 @@
     - `get_user_info` - Gets user profile information
 
   2. Database Views
-    - `private_chats_base` - Enhanced view of private chats with participant usernames and avatars
+    - `private_chats` - Enhanced view of private chats with participant usernames and avatars
 
   3. Security
     - All functions have proper security checks
@@ -121,7 +121,7 @@ END;
 $$;
 
 -- Create enhanced private chats view with participant details
-CREATE OR REPLACE VIEW private_chats_base AS
+CREATE OR REPLACE VIEW private_chats AS
 SELECT 
   pc.id,
   pc.participant_1,
@@ -142,11 +142,11 @@ GRANT EXECUTE ON FUNCTION update_user_presence TO authenticated;
 GRANT EXECUTE ON FUNCTION verify_admin_password TO authenticated;
 GRANT EXECUTE ON FUNCTION find_or_create_private_chat TO authenticated;
 GRANT EXECUTE ON FUNCTION get_user_info TO authenticated;
-GRANT SELECT ON private_chats_base TO authenticated;
+GRANT SELECT ON private_chats TO authenticated;
 
 -- Add RLS policy for the view
 CREATE POLICY "Users can access their private chats view"
-  ON private_chats_base
+  ON private_chats
   FOR SELECT
   TO authenticated
   USING (
@@ -155,4 +155,4 @@ CREATE POLICY "Users can access their private chats view"
 
 -- Enable RLS on the view (if supported)
 -- Note: Views inherit RLS from underlying tables, but we add this for completeness
-ALTER VIEW private_chats_base OWNER TO postgres;
+ALTER VIEW private_chats OWNER TO postgres;
