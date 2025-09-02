@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { supabase } from '../lib/supabase'
 import { PrivateChat } from '../types'
 
 export function usePrivateChats(userId?: string | null) {
@@ -29,7 +28,7 @@ export function usePrivateChats(userId?: string | null) {
     try {
       setLoading(true)
 
-      // ✅ We now query the base table with messages joined
+      // Query the private_chats table with proper joins
       const { data, error } = await supabase
         .from('private_chats')
         .select(`
@@ -81,10 +80,6 @@ export function usePrivateChats(userId?: string | null) {
           lastActivity: new Date(chat.last_activity),
           unreadCount,
           blockedBy: chat.blocked_by,
-          participant_1_username: chat.participant_1_profile?.username,
-          participant_1_avatar: chat.participant_1_profile?.avatar_url,
-          participant_2_username: chat.participant_2_profile?.username,
-          participant_2_avatar: chat.participant_2_profile?.avatar_url,
         }
       })
 
@@ -117,7 +112,7 @@ export function usePrivateChats(userId?: string | null) {
     if (!validUserId) return { data: null, error: 'Not logged in' }
 
     try {
-      // ✅ Check if chat exists
+      // Check if chat exists
       const { data: existing, error: checkError } = await supabase
         .from('private_chats')
         .select('*')
@@ -136,7 +131,7 @@ export function usePrivateChats(userId?: string | null) {
         return { data: existing, error: null }
       }
 
-      // ✅ Create new chat
+      // Create new chat
       const { data: newChat, error: createError } = await supabase
         .from('private_chats')
         .insert({
